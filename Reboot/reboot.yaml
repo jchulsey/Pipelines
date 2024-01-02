@@ -1,0 +1,71 @@
+trigger: none
+pr: none
+
+resources:
+  repositories:
+    - repository: PowerShell
+      type: # git, github, githubenterprise, or bitbucket
+      endpoint: # enter the service endpoint connecting to your repository
+      name: jchulsey/PowerShell # change this to reflect your repository 
+
+parameters:
+  - name: ServerGroup
+    type: string
+    default: UAT
+    values:
+      - UAT
+      - Production
+  - name: Location
+    type: string
+    default: dc01
+    values:
+      - dc01
+      - dc02
+stages: 
+  - stage: Reboot 
+    jobs: 
+      - deployment: Reboot 
+        pool: # enter your custom agent
+        variables: 
+          - ${{ if eq(parameters.ServerGroup, 'UAT') }}:
+            - template: 'variables-uat.yaml'
+          - ${{ if eq(parameters.ServerGroup, 'Production') }}:
+            - templates: 'variables-prod.yaml'
+          - ${{ if eq(parameters.Location, 'dc01') }}:
+            - name: serverList
+              value: $(dc01ServerList)
+          - ${{ if eq(parameters.Location, 'dc02') }}:
+            - name: serverList
+              value: $(dc02ServerList)
+        ${{ if in(parameters.ServerGroup, 'UAT', 'Production') }}:
+          environment: # create an env for UAT and Production using this naming convention: <env name> - ${{ parameters.ServerGroup }}
+        ${{ else }}:
+          error: true
+        strategy:
+          runOnce:
+            deploy: 
+              steps: 
+                - checkout: PowerShell
+                - pwsh: Write-Host "Pipeline.Workspace = $(Pipeline.Workspace)"
+
+                - task: AzureKeyVault@2
+                  retryCountOnTaskFailure: 3 
+                  inputs: 
+                    ${{ if eq(parameters.ServerGroup, 'UAT') }}:
+                      azureSubscription: # enter the name of your UAT Azure subscription
+                      KeyVaultName: # enter the name of your UAT key vault where svc account creds are stored
+                    ${{ if eq(parameters.ServerGroup, 'Production') }}:
+                      azureSubscription: # enter the name of your Production Azure subscription
+                      KeyVaultName: # enter the name of your Production key vault where svc account creds are stored
+                  RunAsPreJob: false
+                  SecretsFilter: > 
+                    # enter svc account username,
+                    # enter svc account password
+
+                - task: PowerShell@2
+                  inputs: 
+                    targetType: filePath
+                    filePath: ./Maintenance/reboot.ps1
+                    arguments: -username "$(# enter svc account username)" -password "$(# enter svc account password)" -serverList "$(serverList)"
+                    pwsh: true 
+                    workingDirectory: $(Pipeline.Workspace)/s

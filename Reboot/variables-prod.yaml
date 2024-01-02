@@ -1,0 +1,5 @@
+variables: 
+  - name: dc01ServerList
+    value: # enter Production server names in dc01
+  - name: dc02ServerList
+    value: # enter Production server names in dc02
