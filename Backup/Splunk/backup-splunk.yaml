@@ -10,8 +10,8 @@ schedules:
     always: true
     batch: false
 
-resources: 
-  repositories: 
+resources:
+  repositories:
     - repository: PowerShell
       type: # git, github, githubenterprise, or bitbucket
       endpoint: # enter the service endpoint connecting to your repository
@@ -59,6 +59,6 @@ stages:
                   inputs: 
                     targetType: filePath
                     filePath: ./Splunk/backup-configs.ps1
-                    arguments: -username "$(# enter svc account username)" -password "$(# enter svc account password)" -serverList "$(serverList)"
+                    arguments: -username "$(# enter svc account username)" -password "$(# enter svc account password)" -serverList "$(serverList)" -source "$(source)" -destination "$(destination)
                     pwsh: true 
                     workingDirectory: $(Pipeline.Workspace)/s
