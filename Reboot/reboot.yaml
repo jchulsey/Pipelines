@@ -59,13 +59,13 @@ stages:
                       KeyVaultName: # enter the name of your Production key vault where svc account creds are stored
                   RunAsPreJob: false
                   SecretsFilter: > 
-                    # enter svc account username,
-                    # enter svc account password
+                    # enter svc account username alias,
+                    # enter svc account password alias
 
                 - task: PowerShell@2
                   inputs: 
                     targetType: filePath
                     filePath: ./Maintenance/reboot.ps1
-                    arguments: -username "$(# enter svc account username)" -password "$(# enter svc account password)" -serverList "$(serverList)"
+                    arguments: -username "$(# enter svc account username alias)" -password "$(# enter svc account password alias)" -serverList "$(serverList)"
                     pwsh: true 
                     workingDirectory: $(Pipeline.Workspace)/s

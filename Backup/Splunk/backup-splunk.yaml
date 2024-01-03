@@ -52,13 +52,13 @@ stages:
                       KeyVaultName: # enter the name of your Production key vault where svc account creds are stored
                   RunAsPreJob: false
                   SecretsFilter: > 
-                    # enter svc account username,
-                    # enter svc account password
+                    # enter svc account username alias,
+                    # enter svc account password alias
 
                 - task: PowerShell@2
                   inputs: 
                     targetType: filePath
                     filePath: ./Splunk/backup-configs.ps1
-                    arguments: -username "$(# enter svc account username)" -password "$(# enter svc account password)" -serverList "$(serverList)" -source "$(source)" -destination "$(destination)
+                    arguments: -username "$(# enter svc account username alias)" -password "$(# enter svc account password alias)" -serverList "$(serverList)" -source "$(source)" -destination "$(destination)
                     pwsh: true 
                     workingDirectory: $(Pipeline.Workspace)/s
