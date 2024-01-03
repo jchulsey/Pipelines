@@ -1,0 +1,64 @@
+trigger: none
+pr: none
+
+schedules:
+  - cron: "0 0 * * *"
+    displayName: Splunk Nightly Backup
+    branches:
+      include:
+        - main 
+    always: true
+    batch: false
+
+resources: 
+  repositories: 
+    - repository: PowerShell
+      type: # git, github, githubenterprise, or bitbucket
+      endpoint: # enter the service endpoint connecting to your repository
+      name: jchulsey/PowerShell # change this to reflect your repository
+
+parameters:
+  - name: RunTheBackup
+    displayName: Run it!
+    default: Run
+    values: 
+      - Run
+      - Don't Run
+
+stages:
+  - stage: Stage 
+    jobs: 
+      - deployment: BackupSplunk 
+        pool: "On-Prem Agent Ozk Hub"
+        variables:
+          - ${{ if eq(parameters.RunTheBackup, 'Run') }}:
+            - template: 'variables-prod.yaml'
+        environment: # enter environment from Azure DevOps
+        strategy:
+          runOnce:
+            deploy: 
+              steps: 
+                - checkout: PowerShell
+                - pwsh: Write-Host "Pipeline.Workspace = $(Pipeline.Workspace)"
+
+                - task: AzureKeyVault@2
+                  retryCountOnTaskFailure: 3 
+                  inputs: 
+                    ${{ if eq(parameters.ServerGroup, 'UAT') }}:
+                      azureSubscription: # enter the name of your UAT Azure subscription
+                      KeyVaultName: # enter the name of your UAT key vault where svc account creds are stored
+                    ${{ if eq(parameters.ServerGroup, 'Production') }}:
+                      azureSubscription: # enter the name of your Production Azure subscription
+                      KeyVaultName: # enter the name of your Production key vault where svc account creds are stored
+                  RunAsPreJob: false
+                  SecretsFilter: > 
+                    # enter svc account username,
+                    # enter svc account password
+
+                - task: PowerShell@2
+                  inputs: 
+                    targetType: filePath
+                    filePath: ./Splunk/backup-configs.ps1
+                    arguments: -username "$(# enter svc account username)" -password "$(# enter svc account password)" -serverList "$(serverList)"
+                    pwsh: true 
+                    workingDirectory: $(Pipeline.Workspace)/s

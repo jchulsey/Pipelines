@@ -1,0 +1,7 @@
+variables:
+  - name: source
+    value: SPLUNK_HOME\etc\*
+  - name: destination
+    values: # enter backup path
+  - name: serverList
+    values: # enter server names
