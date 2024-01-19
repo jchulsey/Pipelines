@@ -1,0 +1,11 @@
+variables:
+  - name: nginxInstanceName
+    value: '# enter instance url (e.g vip.yourdomain.com)'
+  - name: nginxInstancePort
+    value: '# enter instance port'
+  - name: nginxApiVersion
+    value: '# enter nginx api version'
+  - name: dc01ServerNumbers
+    value: '# enter comma separated list of server instance numbers'
+  - name: dc02ServerNumbers
+    value: '# enter comma separated list of server instance numbers'

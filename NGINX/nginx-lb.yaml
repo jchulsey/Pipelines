@@ -32,18 +32,17 @@ stages:
     jobs:
       - deployment: ActionNodes
         pool: # enter your custom agent
-        # TODO update after adding variables
         variables: 
           - ${{ if eq(parameters.ServerGroup, 'UAT') }}:
             - template: 'variables-uat.yaml'
           - ${{ if eq(parameters.ServerGroup, 'Production') }}:
             - templates: 'variables-prod.yaml'
           - ${{ if eq(parameters.Location, 'dc01') }}:
-            - name: serverList
-              value: $(dc01ServerList)
+            - name: serverNumbers
+              value: $(dc01ServerNumbers)
           - ${{ if eq(parameters.Location, 'dc02') }}:
-            - name: serverList
-              value: $(dc02ServerList)
+            - name: servernumbers
+              value: $(dc02ServerNumbers)
         ${{ if in(parameters.ServerGroup, 'UAT', 'Production') }}:
           environment: # create an env for UAT and Production using this naming convention: <env name> - ${{ parameters.ServerGroup }}
         ${{ else }}:
@@ -68,12 +67,14 @@ stages:
                   SecretsFilter: > 
                     # enter svc account username alias,
                     # enter svc account password alias
-                #TODO update parameters that need to be passed
+                
                 - task: PowerShell@2
                   inputs: 
                     targetType: filePath
                     filePath: ./Maintenance/reboot.ps1
-                    arguments: -username "$(# enter svc account username alias)" -password "$(# enter svc account password alias)" -serverList "$(serverList)"
+                    arguments: -username "$(# enter svc account username alias)" -password "$(# enter svc account password alias)" -nginxInstanceName "$(nginxInstanceName)" 
+                               -serverNumbers "$(servernumbers)"  -nginxApiVersion "$(nginxApiVersion)" -nginxInstancePort "$(nginxInstancePort)"
+                               -actionType "${{ parameters.Action }}"
                     pwsh: true 
                     workingDirectory: $(Pipeline.Workspace)/s
         
